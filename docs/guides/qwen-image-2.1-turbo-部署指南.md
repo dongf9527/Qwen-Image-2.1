@@ -26,9 +26,32 @@ python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda
 # 期望：2.7.x / 2.7.x+cu128 类似版本，且 cuda.is_available() 为 True
 ```
 
+国内网络下载模型前可配置 HF 镜像（写入 `~/.bashrc` 或每次会话执行）：
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com
+```
+
 ---
 
 ## 1. 路径 A：ComfyUI 部署（Step by Step）
+
+### Step 0 —— 创建 conda 环境（推荐）
+
+```bash
+conda create -n comfyui python=3.11 -y
+conda activate comfyui
+
+# ⚠️ 必须先单独安装 cu128 构建（5080 是 Blackwell sm_120，PyPI 默认的 cu126 构建无法运行），
+# 再执行 Step 1 的 requirements.txt 安装
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# 验证：应输出 2.7.x+cu128 / 2.8.x+cu128 类似版本，且 True
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+```
+
+> requirements.txt 中的 torch 未锁定具体构建，pip 会保留上面已装的 cu128 版本；
+> 如发现被覆盖回其他构建，重跑上面的 torch 安装命令即可修复。
 
 ### Step 1 —— 安装或升级 ComfyUI 至 ≥ 0.39.0
 
@@ -120,9 +143,21 @@ pip install --upgrade gguf
 
 ### Step 1 —— 建立独立环境
 
+**方式一：conda（推荐，与路径 A 的 comfyui 环境互不干扰）**
+
+```bash
+conda create -n qwen-image python=3.11 -y
+conda activate qwen-image
+```
+
+**方式二：venv**
+
 ```bash
 python -m venv qwen-image-env && source qwen-image-env/bin/activate   # Windows: qwen-image-env\Scripts\activate
 ```
+
+> 两条路径各建独立环境（`comfyui` / `qwen-image`），依赖互不污染；
+> 仓库中的性能实测脚本 `tools/bench_qwen_image.py` 后续在 `qwen-image` 环境中运行。
 
 ### Step 2 —— 安装依赖（顺序与版本敏感）
 
