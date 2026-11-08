@@ -1,2 +1,14 @@
+# 系统工作目录（不属于仓库内容）
 skills/
+upload/
+download/
+scripts/
+
+# 凭证与本地环境（安全基线：唯一副本永不入仓）
+.env*
+!.env.example
+
+# 运行产物
 node_modules/
+__pycache__/
+.venv/
